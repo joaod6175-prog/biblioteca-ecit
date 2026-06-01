@@ -1,76 +1,56 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Biblioteca ECIT João Da Matta</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet" />
+  <title>Biblioteca ECIT</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    :root { --navy: #1a2340; --gold: #c9993a; --cream: #faf6ee; --ink: #1a1a2e; --red: #8b2020; }
-    body { font-family: 'Crimson Pro', serif; background: var(--cream); color: var(--ink); margin: 0; }
-    header { background: var(--navy); padding: 15px; color: white; text-align: center; border-bottom: 3px solid var(--gold); }
-    nav { background: var(--navy); display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; padding: 10px; border-bottom: 1px solid var(--gold); }
-    .tab { color: rgba(255,255,255,0.7); cursor: pointer; padding: 8px 12px; font-weight: bold; font-size: 0.9rem; }
-    .tab.active { color: #e8c36a; border-bottom: 2px solid #c9993a; }
-    main { max-width: 1000px; margin: 20px auto; padding: 0 15px; }
+    :root { --navy: #1a2340; --gold: #c9993a; --cream: #faf6ee; --red: #d9534f; }
+    body { font-family: sans-serif; background: var(--cream); margin: 0; padding-bottom: 50px; }
+    header { background: var(--navy); color: white; text-align: center; padding: 15px; border-bottom: 3px solid var(--gold); }
+    nav { background: var(--navy); display: flex; justify-content: center; flex-wrap: wrap; gap: 5px; padding: 10px; sticky: top; }
+    .tab { color: white; opacity: 0.7; cursor: pointer; padding: 8px 12px; font-size: 14px; font-weight: bold; }
+    .tab.active { opacity: 1; border-bottom: 2px solid var(--gold); color: var(--gold); }
+    main { max-width: 800px; margin: auto; padding: 15px; }
     .section { display: none; }
     .section.active { display: block; }
-    .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
-    .book-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px; border-left: 5px solid var(--gold); position: relative; }
-    .search-box { width: 100%; padding: 12px; margin-bottom: 20px; border: 2px solid var(--gold); border-radius: 8px; font-size: 1rem; box-sizing: border-box; }
-    .btn { padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
-    .btn-gold { background: var(--gold); color: white; }
-    .btn-del { background: none; border: none; color: var(--red); cursor: pointer; position: absolute; top: 15px; right: 15px; font-size: 1.2rem; }
+    .card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px; border-left: 5px solid var(--gold); position: relative; }
+    .search-box { width: 100%; padding: 12px; margin-bottom: 20px; border: 2px solid var(--gold); border-radius: 8px; font-size: 16px; box-sizing: border-box; }
     input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    .btn { padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 5px; color: white; }
+    .btn-gold { background: var(--gold); }
+    .btn-del { background: var(--red); width: auto; padding: 5px 10px; font-size: 12px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
     th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
-    th { background: var(--navy); color: white; }
-    .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--navy); color: white; padding: 12px 20px; border-radius: 8px; display: none; z-index: 1000; }
+    .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--navy); color: white; padding: 10px 20px; border-radius: 20px; display: none; z-index: 9999; }
   </style>
 </head>
 <body>
 
 <header>
-  <h1>ECIT João Da Matta</h1>
-  <p>Biblioteca - Mamanguape/PB</p>
+  <h2 style="margin:0">ECIT João Da Matta</h2>
+  <small>Sistema de Biblioteca</small>
 </header>
 
 <nav>
   <div class="tab active" onclick="showTab('acervo', this)">📖 Acervo</div>
-  <div class="tab" onclick="showTab('emprestimo', this)">📋 Empréstimo</div>
-  <div class="tab" onclick="showTab('devolucao', this)">↩️ Devolução</div>
-  <div class="tab" onclick="showTab('historico', this)">🕐 Histórico</div>
+  <div class="tab" onclick="showTab('emprestimo', this)">📋 Pegar</div>
+  <div class="tab" onclick="showTab('devolucao', this)">↩️ Devolver</div>
   <div class="tab" id="tab-admin" onclick="acessoAdmin(this)">⚙️ Admin</div>
 </nav>
 
 <main>
   <section id="acervo" class="section active">
-    <input type="text" id="searchInp" class="search-box" placeholder="🔍 Pesquisar por título ou autor..." oninput="filterBooks()">
-    <div id="bookGrid">Carregando acervo...</div>
-  </section>
-
-  <section id="admin" class="section">
-    <div class="card">
-      <h2>⚙️ Painel do Administrador</h2>
-      <h3>Cadastrar Novo Livro</h3>
-      <input type="text" id="adTitulo" placeholder="Título do Livro">
-      <input type="text" id="adAutor" placeholder="Autor">
-      <select id="adCat"><option>Literatura</option><option>Didático</option><option>Outros</option></select>
-      <input type="number" id="adQtd" value="1">
-      <button class="btn btn-gold" onclick="cadastrarLivro()">Salvar Livro</button>
-      <hr style="margin:20px 0;">
-      <h3>Lista de Gerenciamento (Excluir)</h3>
-      <div id="adminBookList"></div>
-      <button onclick="sairAdmin()" style="background:none; border:none; color:red; cursor:pointer; width:100%; margin-top:20px;">Sair do Admin</button>
-    </div>
+    <input type="text" id="searchInp" class="search-box" placeholder="🔍 Pesquisar livro ou autor..." oninput="filterBooks()">
+    <div id="bookGrid">Carregando...</div>
   </section>
 
   <section id="emprestimo" class="section">
     <div class="card">
-      <h2>Novo Empréstimo</h2>
+      <h3>Novo Empréstimo</h3>
       <input type="text" id="empNome" placeholder="Nome do Aluno">
-      <input type="text" id="empMatricula" placeholder="Matrícula">
       <select id="empLivroSelect"></select>
       <input type="date" id="empData">
       <button class="btn btn-gold" onclick="registrarEmprestimo()">Confirmar</button>
@@ -78,4 +58,85 @@
   </section>
 
   <section id="devolucao" class="section">
-    <div class="card" style="overflow
+    <h3>Empréstimos Ativos</h3>
+    <div id="devList">Carregando...</div>
+  </section>
+
+  <section id="admin" class="section">
+    <div class="card">
+      <h3>➕ Cadastrar Livro</h3>
+      <input type="text" id="adTitulo" placeholder="Título">
+      <input type="text" id="adAutor" placeholder="Autor">
+      <input type="number" id="adQtd" placeholder="Qtd" value="1">
+      <button class="btn btn-gold" onclick="cadastrarLivro()">Salvar</button>
+      <hr style="margin:20px 0">
+      <h3>🗑️ Gerenciar/Excluir</h3>
+      <div id="adminList"></div>
+    </div>
+  </section>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://lvverofpxhfpwpzueqxf.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_A-dN4r3iX3q-kqywELQAug_xeTqxbmK';
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let allBooks = [];
+
+async function loadBooks() {
+  const { data, error } = await db.from('livros').select('*').order('title');
+  if (error) return console.error(error);
+  allBooks = data;
+  renderBooks(data);
+}
+
+function renderBooks(list) {
+  const grid = document.getElementById('bookGrid');
+  grid.innerHTML = list.map(b => `
+    <div class="card">
+      <strong>${b.title}</strong><br>
+      <small>${b.author}</small><br>
+      <small>Disponível: ${b.available}/${b.total}</small>
+    </div>
+  `).join('') || "Nenhum livro encontrado.";
+}
+
+function filterBooks() {
+  const t = document.getElementById('searchInp').value.toLowerCase();
+  renderBooks(allBooks.filter(b => b.title.toLowerCase().includes(t) || b.author.toLowerCase().includes(t)));
+}
+
+function acessoAdmin(el) {
+  if(prompt("Senha:") === "bibliotecaecitmme") {
+    showTab('admin', el);
+    renderAdmin();
+  } else { alert("Senha Errada!"); }
+}
+
+function showTab(id, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+  if(id === 'acervo') loadBooks();
+  if(id === 'emprestimo') populateSelect();
+  if(id === 'devolucao') loadLoans();
+}
+
+async function populateSelect() {
+  const { data } = await db.from('livros').select('id, title').gt('available', 0);
+  document.getElementById('empLivroSelect').innerHTML = data.map(b => `<option value="${b.id}">${b.title}</option>`).join('');
+}
+
+async function registrarEmprestimo() {
+  const n = document.getElementById('empNome').value;
+  const bId = document.getElementById('empLivroSelect').value;
+  const bTitle = document.getElementById('empLivroSelect').options[document.getElementById('empLivroSelect').selectedIndex].text;
+  const d = document.getElementById('empData').value;
+  if(!n || !d) return toast("Preencha tudo!");
+  
+  await db.from('emprestimos').insert([{ name: n, book_id: bId, book_title: bTitle, date_due: d, returned: false }]);
+  const book = allBooks.find(x => x.id === bId);
+  await db.from('livros').update({
