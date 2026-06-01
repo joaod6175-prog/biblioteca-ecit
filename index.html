@@ -1,37 +1,34 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Biblioteca ECIT</title>
+  <title>Biblioteca ECIT João Da Matta</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root { --navy: #1a2340; --gold: #c9993a; --cream: #faf6ee; --red: #d9534f; }
-    body { font-family: sans-serif; background: var(--cream); margin: 0; padding-bottom: 50px; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--cream); margin: 0; }
     header { background: var(--navy); color: white; text-align: center; padding: 15px; border-bottom: 3px solid var(--gold); }
-    nav { background: var(--navy); display: flex; justify-content: center; flex-wrap: wrap; gap: 5px; padding: 10px; sticky: top; }
-    .tab { color: white; opacity: 0.7; cursor: pointer; padding: 8px 12px; font-size: 14px; font-weight: bold; }
-    .tab.active { opacity: 1; border-bottom: 2px solid var(--gold); color: var(--gold); }
-    main { max-width: 800px; margin: auto; padding: 15px; }
+    nav { background: var(--navy); display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; padding: 10px; }
+    .tab { color: white; opacity: 0.7; cursor: pointer; padding: 8px 15px; font-weight: bold; border-radius: 5px; }
+    .tab.active { opacity: 1; background: rgba(255,255,255,0.1); color: var(--gold); }
+    main { max-width: 900px; margin: auto; padding: 15px; }
     .section { display: none; }
     .section.active { display: block; }
-    .card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px; border-left: 5px solid var(--gold); position: relative; }
+    .card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px; border-left: 5px solid var(--gold); }
     .search-box { width: 100%; padding: 12px; margin-bottom: 20px; border: 2px solid var(--gold); border-radius: 8px; font-size: 16px; box-sizing: border-box; }
     input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-    .btn { padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 5px; color: white; }
+    .btn { padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; color: white; transition: 0.3s; }
     .btn-gold { background: var(--gold); }
-    .btn-del { background: var(--red); width: auto; padding: 5px 10px; font-size: 12px; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
-    .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--navy); color: white; padding: 10px 20px; border-radius: 20px; display: none; z-index: 9999; }
+    .btn-red { background: var(--red); width: auto; margin-top: 10px; }
+    .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--navy); color: white; padding: 10px 20px; border-radius: 20px; display: none; z-index: 999; }
   </style>
 </head>
 <body>
 
 <header>
-  <h2 style="margin:0">ECIT João Da Matta</h2>
-  <small>Sistema de Biblioteca</small>
+  <h1>ECIT João Da Matta</h1>
+  <p>Sistema de Biblioteca - Mamanguape/PB</p>
 </header>
 
 <nav>
@@ -43,35 +40,37 @@
 
 <main>
   <section id="acervo" class="section active">
-    <input type="text" id="searchInp" class="search-box" placeholder="🔍 Pesquisar livro ou autor..." oninput="filterBooks()">
-    <div id="bookGrid">Carregando...</div>
+    <input type="text" id="searchInp" class="search-box" placeholder="🔍 Pesquisar por título ou autor..." oninput="filterBooks()">
+    <div id="bookGrid">Carregando acervo...</div>
   </section>
 
   <section id="emprestimo" class="section">
     <div class="card">
-      <h3>Novo Empréstimo</h3>
+      <h2>Novo Empréstimo</h2>
       <input type="text" id="empNome" placeholder="Nome do Aluno">
-      <select id="empLivroSelect"></select>
+      <select id="empLivroSelect"><option>Carregando livros...</option></select>
+      <label>Data de Devolução:</label>
       <input type="date" id="empData">
-      <button class="btn btn-gold" onclick="registrarEmprestimo()">Confirmar</button>
+      <button class="btn btn-gold" onclick="registrarEmprestimo()">Confirmar Empréstimo</button>
     </div>
   </section>
 
   <section id="devolucao" class="section">
-    <h3>Empréstimos Ativos</h3>
-    <div id="devList">Carregando...</div>
+    <h2>Empréstimos Ativos</h2>
+    <div id="devList">Buscando pendências...</div>
   </section>
 
   <section id="admin" class="section">
     <div class="card">
-      <h3>➕ Cadastrar Livro</h3>
+      <h2>⚙️ Painel do Administrador</h2>
+      <h3>Cadastrar Novo Livro</h3>
       <input type="text" id="adTitulo" placeholder="Título">
       <input type="text" id="adAutor" placeholder="Autor">
-      <input type="number" id="adQtd" placeholder="Qtd" value="1">
-      <button class="btn btn-gold" onclick="cadastrarLivro()">Salvar</button>
-      <hr style="margin:20px 0">
-      <h3>🗑️ Gerenciar/Excluir</h3>
-      <div id="adminList"></div>
+      <input type="number" id="adQtd" value="1" placeholder="Quantidade">
+      <button class="btn btn-gold" onclick="cadastrarLivro()">Salvar no Banco</button>
+      <hr style="margin:25px 0;">
+      <h3>🗑️ Gerenciar Acervo (Excluir)</h3>
+      <div id="adminBookList"></div>
     </div>
   </section>
 </main>
@@ -79,6 +78,7 @@
 <div id="toast" class="toast"></div>
 
 <script>
+// CONFIGURAÇÃO CORRIGIDA (Sem o /rest/v1/)
 const SUPABASE_URL = 'https://lvverofpxhfpwpzueqxf.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_A-dN4r3iX3q-kqywELQAug_xeTqxbmK';
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -86,33 +86,50 @@ const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let allBooks = [];
 
 async function loadBooks() {
-  const { data, error } = await db.from('livros').select('*').order('title');
-  if (error) return console.error(error);
-  allBooks = data;
-  renderBooks(data);
+  const grid = document.getElementById('bookGrid');
+  try {
+    const { data, error } = await db.from('livros').select('*').order('title');
+    if (error) throw error;
+    
+    allBooks = data || [];
+    renderBooks(allBooks);
+  } catch (err) {
+    grid.innerHTML = "❌ Erro ao carregar: " + err.message;
+    console.error("Erro Supabase:", err);
+  }
 }
 
 function renderBooks(list) {
   const grid = document.getElementById('bookGrid');
+  if (list.length === 0) {
+    grid.innerHTML = "<p>Nenhum livro encontrado.</p>";
+    return;
+  }
   grid.innerHTML = list.map(b => `
     <div class="card">
-      <strong>${b.title}</strong><br>
-      <small>${b.author}</small><br>
-      <small>Disponível: ${b.available}/${b.total}</small>
+      <h3>📘 ${b.title}</h3>
+      <p>Autor: ${b.author}</p>
+      <strong>Disponível: ${b.available} de ${b.total}</strong>
     </div>
-  `).join('') || "Nenhum livro encontrado.";
+  `).join('');
 }
 
 function filterBooks() {
-  const t = document.getElementById('searchInp').value.toLowerCase();
-  renderBooks(allBooks.filter(b => b.title.toLowerCase().includes(t) || b.author.toLowerCase().includes(t)));
+  const term = document.getElementById('searchInp').value.toLowerCase();
+  const filtered = allBooks.filter(b => 
+    b.title.toLowerCase().includes(term) || b.author.toLowerCase().includes(term)
+  );
+  renderBooks(filtered);
 }
 
 function acessoAdmin(el) {
-  if(prompt("Senha:") === "bibliotecaecitmme") {
+  const senha = prompt("Senha do Administrador:");
+  if(senha === "bibliotecaecitmme") {
     showTab('admin', el);
-    renderAdmin();
-  } else { alert("Senha Errada!"); }
+    renderAdminList();
+  } else {
+    alert("Senha incorreta!");
+  }
 }
 
 function showTab(id, el) {
@@ -120,6 +137,7 @@ function showTab(id, el) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   el.classList.add('active');
+  
   if(id === 'acervo') loadBooks();
   if(id === 'emprestimo') populateSelect();
   if(id === 'devolucao') loadLoans();
@@ -127,16 +145,107 @@ function showTab(id, el) {
 
 async function populateSelect() {
   const { data } = await db.from('livros').select('id, title').gt('available', 0);
-  document.getElementById('empLivroSelect').innerHTML = data.map(b => `<option value="${b.id}">${b.title}</option>`).join('');
+  const sel = document.getElementById('empLivroSelect');
+  sel.innerHTML = (data || []).map(b => `<option value="${b.id}">${b.title}</option>`).join('');
 }
 
 async function registrarEmprestimo() {
-  const n = document.getElementById('empNome').value;
-  const bId = document.getElementById('empLivroSelect').value;
-  const bTitle = document.getElementById('empLivroSelect').options[document.getElementById('empLivroSelect').selectedIndex].text;
-  const d = document.getElementById('empData').value;
-  if(!n || !d) return toast("Preencha tudo!");
-  
-  await db.from('emprestimos').insert([{ name: n, book_id: bId, book_title: bTitle, date_due: d, returned: false }]);
-  const book = allBooks.find(x => x.id === bId);
-  await db.from('livros').update({
+  const nome = document.getElementById('empNome').value;
+  const bookId = document.getElementById('empLivroSelect').value;
+  const bookTitle = document.getElementById('empLivroSelect').options[document.getElementById('empLivroSelect').selectedIndex].text;
+  const dataDev = document.getElementById('empData').value;
+
+  if(!nome || !dataDev) return toast("⚠️ Preencha todos os campos!");
+
+  try {
+    await db.from('emprestimos').insert([{ 
+      name: nome, book_id: bookId, book_title: bookTitle, date_due: dataDev, returned: false 
+    }]);
+
+    const book = allBooks.find(b => b.id === bookId);
+    await db.from('livros').update({ available: book.available - 1 }).eq('id', bookId);
+
+    toast("✅ Empréstimo registrado!");
+    showTab('acervo', document.querySelector('.tab'));
+  } catch (err) {
+    toast("❌ Erro ao registrar.");
+  }
+}
+
+async function loadLoans() {
+  const { data } = await db.from('emprestimos').select('*').eq('returned', false);
+  const list = document.getElementById('devList');
+  if(!data || data.length === 0) {
+    list.innerHTML = "<p>Não há empréstimos ativos.</p>";
+    return;
+  }
+  list.innerHTML = data.map(l => `
+    <div class="card">
+      <p><strong>${l.name}</strong> pegou <strong>${l.book_title}</strong></p>
+      <p>Prazo: ${l.date_due}</p>
+      <button class="btn btn-gold" onclick="devolver('${l.id}', '${l.book_id}')">↩️ Confirmar Devolução</button>
+    </div>
+  `).join('');
+}
+
+async function devolver(loanId, bookId) {
+  try {
+    await db.from('emprestimos').update({ returned: true }).eq('id', loanId);
+    const { data: book } = await db.from('livros').select('available').eq('id', bookId).single();
+    await db.from('livros').update({ available: book.available + 1 }).eq('id', bookId);
+    toast("📚 Livro devolvido ao acervo!");
+    loadLoans();
+  } catch (err) {
+    toast("❌ Erro na devolução.");
+  }
+}
+
+async function cadastrarLivro() {
+  const title = document.getElementById('adTitulo').value;
+  const author = document.getElementById('adAutor').value;
+  const qtd = parseInt(document.getElementById('adQtd').value);
+
+  if(!title || !author) return toast("⚠️ Título e Autor são obrigatórios!");
+
+  try {
+    await db.from('livros').insert([{ title, author, total: qtd, available: qtd }]);
+    toast("✅ Livro cadastrado!");
+    document.getElementById('adTitulo').value = '';
+    document.getElementById('adAutor').value = '';
+    loadBooks();
+    renderAdminList();
+  } catch (err) {
+    toast("❌ Erro ao salvar.");
+  }
+}
+
+async function renderAdminList() {
+  const listDiv = document.getElementById('adminBookList');
+  listDiv.innerHTML = allBooks.map(b => `
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding:10px 0;">
+      <span>${b.title}</span>
+      <button class="btn btn-red" onclick="excluirLivro('${b.id}', '${b.title}')">🗑️ Excluir</button>
+    </div>
+  `).join('');
+}
+
+async function excluirLivro(id, titulo) {
+  if(confirm(`Deseja apagar permanentemente "${titulo}"?`)) {
+    await db.from('livros').delete().eq('id', id);
+    toast("🗑️ Livro removido.");
+    loadBooks();
+    setTimeout(renderAdminList, 500);
+  }
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3000);
+}
+
+// Inicia o carregamento
+loadBooks();
+</script>
+</body>
+</html>
