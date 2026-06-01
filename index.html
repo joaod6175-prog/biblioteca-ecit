@@ -120,7 +120,7 @@
 // CONFIGURAÇÃO SUPABASE - COLOQUE SEUS DADOS AQUI!
 const SUPABASE_URL = 'https://lvverofpxhfpwpzueqxf.supabase.co/rest/v1/';
 const SUPABASE_KEY = 'sb_publishable_A-dN4r3iX3q-kqywELQAug_xeTqxbmK';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const db supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let allBooks = [];
 
@@ -138,7 +138,7 @@ function showTab(id, el) {
 
 // CARREGAR LIVROS
 async function loadBooks() {
-  const { data, error } = await supabase.from('livros').select('*').order('title');
+  const { data, error } = await db.from('livros').select('*').order('title');
   if (error) return console.error(error);
   allBooks = data;
   renderBooks(data);
@@ -165,7 +165,7 @@ async function cadastrarLivro() {
   const cat = document.getElementById('adCat').value;
   const qtd = parseInt(document.getElementById('adQtd').value);
 
-  const { error } = await supabase.from('livros').insert([{ 
+  const { error } = await db.from('livros').insert([{ 
     title, author, cat, total: qtd, available: qtd 
   }]);
 
@@ -177,7 +177,7 @@ async function cadastrarLivro() {
 
 // EMPRÉSTIMO
 async function populateSelect() {
-  const { data } = await supabase.from('livros').select('id, title').gt('available', 0);
+  const { data } = await db.from('livros').select('id, title').gt('available', 0);
   const sel = document.getElementById('empLivro');
   sel.innerHTML = data.map(b => `<option value="${b.id}">${b.title}</option>`).join('');
 }
@@ -189,20 +189,20 @@ async function registrarEmprestimo() {
   const book_title = document.getElementById('empLivro').options[document.getElementById('empLivro').selectedIndex].text;
 
   // 1. Criar empréstimo
-  const { error: err1 } = await supabase.from('emprestimos').insert([{
+  const { error: err1 } = await db.from('emprestimos').insert([{
     name, book_id, date_due, book_title, matricula: document.getElementById('empMatricula').value, turma: 'Geral'
   }]);
 
   // 2. Diminuir estoque
   const book = allBooks.find(b => b.id === book_id);
-  await supabase.from('livros').update({ available: book.available - 1 }).eq('id', book_id);
+  await db.from('livros').update({ available: book.available - 1 }).eq('id', book_id);
 
   if (!err1) toast("✅ Empréstimo registrado!");
 }
 
 // DEVOLUÇÃO
 async function loadActiveLoans() {
-  const { data } = await supabase.from('emprestimos').select('*').eq('returned', false);
+  const { data } = await db.from('emprestimos').select('*').eq('returned', false);
   const body = document.getElementById('devBody');
   body.innerHTML = data.map(l => `
     <tr>
@@ -216,11 +216,11 @@ async function loadActiveLoans() {
 
 async function devolver(loanId, bookId) {
   // 1. Marcar como devolvido
-  await supabase.from('emprestimos').update({ returned: true, date_returned: new Date() }).eq('id', loanId);
+  await db.from('emprestimos').update({ returned: true, date_returned: new Date() }).eq('id', loanId);
   
   // 2. Aumentar estoque
-  const { data: book } = await supabase.from('livros').select('available').eq('id', bookId).single();
-  await supabase.from('livros').update({ available: book.available + 1 }).eq('id', bookId);
+  const { data: book } = await db.from('livros').select('available').eq('id', bookId).single();
+  await db.from('livros').update({ available: book.available + 1 }).eq('id', bookId);
 
   toast("📚 Livro devolvido!");
   loadActiveLoans();
@@ -228,7 +228,7 @@ async function devolver(loanId, bookId) {
 
 // HISTÓRICO
 async function loadHistory() {
-  const { data } = await supabase.from('emprestimos').select('*').order('created_at', { ascending: false });
+  const { data } = await db.from('emprestimos').select('*').order('created_at', { ascending: false });
   document.getElementById('histBody').innerHTML = data.map(l => `
     <tr>
       <td>${l.name}</td>
