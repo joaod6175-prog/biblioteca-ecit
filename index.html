@@ -120,7 +120,7 @@
 // CONFIGURAÇÃO SUPABASE - COLOQUE SEUS DADOS AQUI!
 const SUPABASE_URL = 'https://lvverofpxhfpwpzueqxf.supabase.co/rest/v1/';
 const SUPABASE_KEY = 'sb_publishable_A-dN4r3iX3q-kqywELQAug_xeTqxbmK';
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let allBooks = [];
 
