@@ -7,7 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    :root { --navy: #1a2340; --gold: #c9993a; --cream: #faf6ee; --ink: #1a1a2e; }
+    :root { --navy: #1a2340; --gold: #c9993a; --cream: #faf6ee; --ink: #1a1a2e; --red: #8b2020; }
     body { font-family: 'Crimson Pro', serif; background: var(--cream); color: var(--ink); margin: 0; }
     header { background: var(--navy); padding: 15px; color: white; text-align: center; border-bottom: 3px solid var(--gold); }
     nav { background: var(--navy); display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; padding: 10px; border-bottom: 1px solid var(--gold); }
@@ -17,12 +17,13 @@
     .section { display: none; }
     .section.active { display: block; }
     .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
-    .book-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px; border-left: 5px solid var(--gold); }
+    .book-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px; border-left: 5px solid var(--gold); position: relative; }
+    .search-box { width: 100%; padding: 12px; margin-bottom: 20px; border: 2px solid var(--gold); border-radius: 8px; font-size: 1rem; box-sizing: border-box; }
     .btn { padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
     .btn-gold { background: var(--gold); color: white; }
-    .btn-green { background: #2a7a3b; color: white; width: auto; }
+    .btn-del { background: none; border: none; color: var(--red); cursor: pointer; position: absolute; top: 15px; right: 15px; font-size: 1.2rem; }
     input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
     th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
     th { background: var(--navy); color: white; }
     .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--navy); color: white; padding: 12px 20px; border-radius: 8px; display: none; z-index: 1000; }
@@ -45,8 +46,24 @@
 
 <main>
   <section id="acervo" class="section active">
-    <h2>Livros no Acervo</h2>
-    <div id="bookGrid">Carregando...</div>
+    <input type="text" id="searchInp" class="search-box" placeholder="🔍 Pesquisar por título ou autor..." oninput="filterBooks()">
+    <div id="bookGrid">Carregando acervo...</div>
+  </section>
+
+  <section id="admin" class="section">
+    <div class="card">
+      <h2>⚙️ Painel do Administrador</h2>
+      <h3>Cadastrar Novo Livro</h3>
+      <input type="text" id="adTitulo" placeholder="Título do Livro">
+      <input type="text" id="adAutor" placeholder="Autor">
+      <select id="adCat"><option>Literatura</option><option>Didático</option><option>Outros</option></select>
+      <input type="number" id="adQtd" value="1">
+      <button class="btn btn-gold" onclick="cadastrarLivro()">Salvar Livro</button>
+      <hr style="margin:20px 0;">
+      <h3>Lista de Gerenciamento (Excluir)</h3>
+      <div id="adminBookList"></div>
+      <button onclick="sairAdmin()" style="background:none; border:none; color:red; cursor:pointer; width:100%; margin-top:20px;">Sair do Admin</button>
+    </div>
   </section>
 
   <section id="emprestimo" class="section">
@@ -54,163 +71,11 @@
       <h2>Novo Empréstimo</h2>
       <input type="text" id="empNome" placeholder="Nome do Aluno">
       <input type="text" id="empMatricula" placeholder="Matrícula">
-      <select id="empLivroSelect"><option>Carregando livros...</option></select>
-      <label>Data de Devolução:</label>
+      <select id="empLivroSelect"></select>
       <input type="date" id="empData">
-      <button class="btn btn-gold" onclick="registrarEmprestimo()">Confirmar Empréstimo</button>
+      <button class="btn btn-gold" onclick="registrarEmprestimo()">Confirmar</button>
     </div>
   </section>
 
   <section id="devolucao" class="section">
-    <h2>Empréstimos Ativos</h2>
-    <div class="card" style="overflow-x:auto;">
-      <table id="devTable">
-        <thead><tr><th>Aluno</th><th>Livro</th><th>Prazo</th><th>Ação</th></tr></thead>
-        <tbody id="devBody"></tbody>
-      </table>
-    </div>
-  </section>
-
-  <section id="historico" class="section">
-    <h2>Histórico Geral</h2>
-    <div class="card" style="overflow-x:auto;">
-      <table>
-        <thead><tr><th>Aluno</th><th>Livro</th><th>Data</th><th>Status</th></tr></thead>
-        <tbody id="histBody"></tbody>
-      </table>
-    </div>
-  </section>
-
-  <section id="admin" class="section">
-    <div class="card">
-      <h2>⚙️ Gerenciar Acervo</h2>
-      <h3>Cadastrar Livro</h3>
-      <input type="text" id="adTitulo" placeholder="Título">
-      <input type="text" id="adAutor" placeholder="Autor">
-      <select id="adCat"><option>Literatura</option><option>Didático</option><option>Outros</option></select>
-      <input type="number" id="adQtd" value="1">
-      <button class="btn btn-gold" onclick="cadastrarLivro()">Salvar Livro</button>
-      <hr>
-      <button onclick="showTab('acervo', document.querySelector('.tab'))" style="background:none; border:none; color:red; cursor:pointer; width:100%;">Sair do Admin</button>
-    </div>
-  </section>
-</main>
-
-<div id="toast" class="toast"></div>
-
-<script>
-const SUPABASE_URL = 'https://lvverofpxhfpwpzueqxf.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_A-dN4r3iX3q-kqywELQAug_xeTqxbmK';
-const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-let allBooks = [];
-
-function showTab(id, el) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  el.classList.add('active');
-  
-  if(id === 'acervo') loadBooks();
-  if(id === 'emprestimo') populateSelect();
-  if(id === 'devolucao') loadLoans();
-  if(id === 'historico') loadHistory();
-}
-
-function acessoAdmin(el) {
-  const senha = prompt("Senha do Admin:");
-  if(senha === "bibliotecaecitmme") showTab('admin', el);
-  else alert("Acesso Negado!");
-}
-
-async function loadBooks() {
-  const { data } = await db.from('livros').select('*').order('title');
-  allBooks = data || [];
-  document.getElementById('bookGrid').innerHTML = allBooks.map(b => `
-    <div class="book-card">
-      <h3>📘 ${b.title}</h3>
-      <p>${b.author} | ${b.cat}</p>
-      <strong>Disponível: ${b.available} de ${b.total}</strong>
-    </div>
-  `).join('');
-}
-
-async function populateSelect() {
-  const { data } = await db.from('livros').select('id, title').gt('available', 0);
-  const sel = document.getElementById('empLivroSelect');
-  sel.innerHTML = data.map(b => `<option value="${b.id}">${b.title}</option>`).join('');
-}
-
-async function registrarEmprestimo() {
-  const nome = document.getElementById('empNome').value;
-  const bookId = document.getElementById('empLivroSelect').value;
-  const bookTitle = document.getElementById('empLivroSelect').options[document.getElementById('empLivroSelect').selectedIndex].text;
-  const dataDev = document.getElementById('empData').value;
-
-  if(!nome || !dataDev) return toast("Preencha tudo!");
-
-  await db.from('emprestimos').insert([{ 
-    name: nome, book_id: bookId, book_title: bookTitle, 
-    date_due: dataDev, matricula: document.getElementById('empMatricula').value, turma: 'Geral'
-  }]);
-
-  const book = allBooks.find(b => b.id === bookId);
-  await db.from('livros').update({ available: book.available - 1 }).eq('id', bookId);
-
-  toast("✅ Empréstimo feito!");
-  showTab('acervo', document.querySelector('.tab'));
-}
-
-async function loadLoans() {
-  const { data } = await db.from('emprestimos').select('*').eq('returned', false);
-  document.getElementById('devBody').innerHTML = data.map(l => `
-    <tr>
-      <td>${l.name}</td>
-      <td>${l.book_title}</td>
-      <td>${l.date_due}</td>
-      <td><button class="btn-green" onclick="devolver('${l.id}', '${l.book_id}')">↩️</button></td>
-    </tr>
-  `).join('');
-}
-
-async function devolver(loanId, bookId) {
-  await db.from('emprestimos').update({ returned: true, date_returned: new Date() }).eq('id', loanId);
-  const { data: book } = await db.from('livros').select('available').eq('id', bookId).single();
-  await db.from('livros').update({ available: book.available + 1 }).eq('id', bookId);
-  toast("📚 Devolvido!");
-  loadLoans();
-}
-
-async function loadHistory() {
-  const { data } = await db.from('emprestimos').select('*').order('created_at', {ascending: false});
-  document.getElementById('histBody').innerHTML = data.map(l => `
-    <tr>
-      <td>${l.name}</td>
-      <td>${l.book_title}</td>
-      <td>${new Date(l.created_at).toLocaleDateString()}</td>
-      <td>${l.returned ? '✅' : '📖'}</td>
-    </tr>
-  `).join('');
-}
-
-async function cadastrarLivro() {
-  const t = document.getElementById('adTitulo').value;
-  const a = document.getElementById('adAutor').value;
-  const c = document.getElementById('adCat').value;
-  const q = parseInt(document.getElementById('adQtd').value);
-  await db.from('livros').insert([{ title: t, author: a, cat: c, total: q, available: q }]);
-  toast("✅ Salvo!");
-  document.getElementById('adTitulo').value = '';
-}
-
-function toast(m) {
-  const t = document.getElementById('toast');
-  t.textContent = m; t.style.display = 'block';
-  setTimeout(() => t.style.display = 'none', 3000);
-}
-
-loadBooks();
-</script>
-</body>
-</html>
-
+    <div class="card" style="overflow
