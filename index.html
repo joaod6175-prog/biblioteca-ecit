@@ -63,9 +63,39 @@
   filter:
     drop-shadow(0 0 18px #3498db);
 }
+    .wave-transition {
+  position: fixed;
+  top: -110vh; /* Escondida acima */
+  left: 0;
+  width: 100%;
+  height: 110vh;
+  background: var(--gold); /* Cor da onda igual ao seu dourado */
+  z-index: 1000;
+  transition: transform 0.6s cubic-bezier(0.65, 0, 0.35, 1);
+  pointer-events: none;
+}
+
+/* O SVG fica na parte de baixo da div para parecer a ponta da onda */
+.wave-transition svg {
+  position: absolute;
+  bottom: -100px;
+  width: 100%;
+  height: 100px;
+}
+
+.wave-active {
+  transform: translateY(220vh); /* Faz a onda atravessar a tela inteira */
+}
+
     </style>
 </head>
 <body>
+
+  <div id="waveTransition" class="wave-transition">
+  <svg viewBox="0 0 1440 320" preserveAspectRatio="none">
+    <path fill="#ffd700" d="M0,160L48,144C96,128,192,96,288,106.7C384,117,480,171,576,165.3C672,160,768,96,864,101.3C960,107,1056,181,1152,197.3C1248,213,1344,171,1392,149.3L1440,128L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path>
+  </svg>
+</div>
 
 <header>
   <img src="logo.png" id="logoECIT" class="logo-3d logo-flutuando" alt="Escudo ECIT">
