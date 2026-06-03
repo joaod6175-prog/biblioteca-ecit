@@ -211,46 +211,44 @@ function acessoAdmin(el) {
 }
 
   function showTab(id, el) {
+  // 1. Tenta pegar a onda. Se não achar, o código não trava.
   const wave = document.getElementById('waveTransition');
-  
-  // 1. Dispara a onda (Se ela existir)
   if(wave) wave.classList.add('wave-active');
 
-  // 2. Espera a onda cobrir a tela
-  setTimeout(() => {
-    // Esconde todas as seções
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  // 2. Faz a troca das abas
+  setTimeout(function() {
+    // Esconde tudo
+    const sections = document.querySelectorAll('.section');
+    for(let i=0; i<sections.length; i++) { sections[i].classList.remove('active'); }
     
-    // Ativa a aba atual
+    const tabs = document.querySelectorAll('.tab');
+    for(let i=0; i<tabs.length; i++) { tabs[i].classList.remove('active'); }
+
+    // Mostra a escolhida
     const target = document.getElementById(id);
     if(target) target.classList.add('active');
     if(el) el.classList.add('active');
 
-    // Lógica da Logo
+    // Gira a logo
     const logo = document.getElementById('logoECIT');
     if(logo) {
       logo.classList.remove('gira-acervo', 'gira-admin');
       void logo.offsetWidth;
-      if(id === 'acervo') {
-        logo.classList.add('gira-acervo');
-      } else {
-        logo.classList.add('gira-admin');
-      }
+      logo.classList.add(id === 'acervo' ? 'gira-acervo' : 'gira-admin');
     }
 
-    // RECARREGA OS DADOS (Isso aqui é o que faz os livros aparecerem)
-    if(id === 'acervo') loadBooks();
-    if(id === 'emprestimo') populateSelect();
-    if(id === 'devolucao') loadLoans();
+    // Chama as funções de carregar dados
+    if(id === 'acervo' && typeof loadBooks === 'function') loadBooks();
+    if(id === 'emprestimo' && typeof populateSelect === 'function') populateSelect();
+    if(id === 'devolucao' && typeof loadLoans === 'function') loadLoans();
 
   }, 350);
 
-  // 3. Reseta a onda
-  setTimeout(() => {
+  // 3. Tira a onda da frente
+  setTimeout(function() {
     if(wave) wave.classList.remove('wave-active');
   }, 900);
-
+}
 
 if(
   id === 'emprestimo' ||
