@@ -213,37 +213,44 @@ function acessoAdmin(el) {
   function showTab(id, el) {
   const wave = document.getElementById('waveTransition');
   
-  // 1. Faz a onda descer
-  wave.classList.add('wave-active');
+  // 1. Dispara a onda (Se ela existir)
+  if(wave) wave.classList.add('wave-active');
 
-  // 2. Espera a tela ficar coberta (350ms) para trocar o conteúdo
+  // 2. Espera a onda cobrir a tela
   setTimeout(() => {
-    // --- Seu código original adaptado aqui dentro ---
+    // Esconde todas as seções
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     
-    document.getElementById(id).classList.add('active');
+    // Ativa a aba atual
+    const target = document.getElementById(id);
+    if(target) target.classList.add('active');
     if(el) el.classList.add('active');
 
+    // Lógica da Logo
     const logo = document.getElementById('logoECIT');
     if(logo) {
       logo.classList.remove('gira-acervo', 'gira-admin');
       void logo.offsetWidth;
-
-      if(id === 'acervo'){
+      if(id === 'acervo') {
         logo.classList.add('gira-acervo');
       } else {
         logo.classList.add('gira-admin');
       }
     }
-    // -----------------------------------------------
+
+    // RECARREGA OS DADOS (Isso aqui é o que faz os livros aparecerem)
+    if(id === 'acervo') loadBooks();
+    if(id === 'emprestimo') populateSelect();
+    if(id === 'devolucao') loadLoans();
+
   }, 350);
 
-  // 3. Recolhe a onda depois que a troca foi feita
+  // 3. Reseta a onda
   setTimeout(() => {
-    wave.classList.remove('wave-active');
+    if(wave) wave.classList.remove('wave-active');
   }, 900);
-}
+
 
 if(
   id === 'emprestimo' ||
